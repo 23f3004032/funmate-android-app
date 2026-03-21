@@ -8,8 +8,10 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
-  Animated,
+  ImageBackground,
+  Image,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import auth, { getAuth, signInWithPhoneNumber, PhoneAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
@@ -33,14 +35,8 @@ const OTPVerificationScreen = ({ navigation, route }: OTPVerificationScreenProps
   const [resendTimer, setResendTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
   const inputRefs = useRef<Array<TextInput | null>>([]);
-
-  // Bubble animations
-  const bubble1Y = useRef(new Animated.Value(0)).current;
-  const bubble2Y = useRef(new Animated.Value(0)).current;
-  const bubble3Y = useRef(new Animated.Value(0)).current;
-  const bubble4Y = useRef(new Animated.Value(0)).current;
-  const bubble5Y = useRef(new Animated.Value(0)).current;
-  const bubble6Y = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
   // Countdown timer for resend
   useEffect(() => {
@@ -53,36 +49,6 @@ const OTPVerificationScreen = ({ navigation, route }: OTPVerificationScreenProps
       setCanResend(true);
     }
   }, [resendTimer]);
-
-  useEffect(() => {
-    const createBubbleAnimation = (animatedValue: Animated.Value, duration: number) => {
-      return Animated.loop(
-        Animated.sequence([
-          Animated.timing(animatedValue, {
-            toValue: -30,
-            duration: duration,
-            useNativeDriver: true,
-          }),
-          Animated.timing(animatedValue, {
-            toValue: 0,
-            duration: duration,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-    };
-
-    const animations = [
-      createBubbleAnimation(bubble1Y, 4000),
-      createBubbleAnimation(bubble2Y, 3500),
-      createBubbleAnimation(bubble3Y, 4500),
-      createBubbleAnimation(bubble4Y, 3800),
-      createBubbleAnimation(bubble5Y, 4200),
-      createBubbleAnimation(bubble6Y, 4600),
-    ];
-
-    animations.forEach(anim => anim.start());
-  }, []);
 
   const handleOtpChange = (value: string, index: number) => {
     // Only allow digits
@@ -144,7 +110,7 @@ const OTPVerificationScreen = ({ navigation, route }: OTPVerificationScreenProps
         console.log('Account exists?:', accountDoc.exists);
         
         // Only treat as existing if document actually has data
-        isExistingUser = accountDoc.exists && accountDoc.data() !== undefined;
+        isExistingUser = accountDoc.exists() && accountDoc.data() != null;
         console.log('Is existing user?:', isExistingUser);
         
       } catch (firestoreError: any) {
@@ -325,26 +291,33 @@ const OTPVerificationScreen = ({ navigation, route }: OTPVerificationScreenProps
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0E1621" translucent={true} />
-
-      {/* Floating Bubbles */}
-      <Animated.View style={[styles.bubble, styles.bubble1, { transform: [{ translateY: bubble1Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble2, { transform: [{ translateY: bubble2Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble3, { transform: [{ translateY: bubble3Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble4, { transform: [{ translateY: bubble4Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble5, { transform: [{ translateY: bubble5Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble6, { transform: [{ translateY: bubble6Y }] }]} />
+    <ImageBackground
+      source={require('../../assets/images/bg_splash.webp')}
+      style={styles.container}
+      resizeMode="cover"
+      blurRadius={6}
+    >
+      <View style={styles.overlay} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
           <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
         </TouchableOpacity>
+
+        {/* Funmate Logo — centred in header */}
+        <View style={styles.logoRow}>
+          <Image source={require('../../assets/logo.png')} style={styles.logoImage as any} />
+          <Text style={styles.appName}>Funmate</Text>
+        </View>
+
+        {/* Spacer to balance back button */}
+        <View style={styles.backButton} />
       </View>
 
       {/* Content */}
@@ -365,12 +338,15 @@ const OTPVerificationScreen = ({ navigation, route }: OTPVerificationScreenProps
               style={[
                 styles.otpBox,
                 digit && styles.otpBoxFilled,
+                focusedIndex === index && styles.otpBoxFocused,
               ]}
               value={digit}
               onChangeText={(value) => handleOtpChange(value, index)}
               onKeyPress={({ nativeEvent }) =>
                 handleKeyPress(nativeEvent.key, index)
               }
+              onFocus={() => setFocusedIndex(index)}
+              onBlur={() => setFocusedIndex(null)}
               keyboardType="number-pad"
               maxLength={1}
               selectTextOnFocus
@@ -385,7 +361,7 @@ const OTPVerificationScreen = ({ navigation, route }: OTPVerificationScreenProps
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={otp.join('').length !== 6 ? ['#1B2F48', '#1B2F48'] : ['#378BBB', '#4FC3F7']}
+            colors={otp.join('').length !== 6 || loading ? ['rgba(139,43,226,0.25)', 'rgba(6,182,212,0.25)'] : ['#8B2BE2', '#06B6D4']}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 0}}
             style={styles.verifyButton}
@@ -410,18 +386,23 @@ const OTPVerificationScreen = ({ navigation, route }: OTPVerificationScreenProps
           )}
         </View>
       </View>
-    </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0E1621',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(13, 11, 30, 0.62)',
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 40,
     paddingBottom: 10,
   },
   backButton: {
@@ -430,23 +411,41 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 18,
+  },
+  logoImage: {
+    width: 30,
+    height: 30,
+    resizeMode: 'contain',
+    position: 'absolute',
+    left: -36,
+  },
+  appName: {
+    fontSize: 30,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
   content: {
     flex: 1,
     paddingHorizontal: 32,
-    paddingTop: 40,
+    paddingTop: 100,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 8,
-    fontFamily: 'Inter_24pt-Bold',
+    fontFamily: 'Inter-Bold',
   },
   subtitle: {
     fontSize: 16,
-    color: '#B8C7D9',
+    color: 'rgba(255,255,255,0.55)',
     marginBottom: 40,
-    fontFamily: 'Inter_24pt-Regular',
+    fontFamily: 'Inter-Regular',
   },
   otpContainer: {
     flexDirection: 'row',
@@ -456,36 +455,39 @@ const styles = StyleSheet.create({
   otpBox: {
     width: 50,
     height: 56,
-    backgroundColor: '#1B2F48',
+    backgroundColor: 'rgba(30, 28, 45, 0.88)',
     borderRadius: 14,
-    borderWidth: 2,
-    borderColor: '#1B2F48',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     fontSize: 24,
     fontWeight: '600',
     color: '#FFFFFF',
     textAlign: 'center',
-    fontFamily: 'Inter_24pt-Bold',
+    fontFamily: 'Inter-Bold',
   },
   otpBoxFilled: {
-    borderColor: '#378BBB',
-    backgroundColor: '#1B2F48',
+    borderColor: 'rgba(139, 92, 246, 0.60)',
+  },
+  otpBoxFocused: {
+    borderColor: 'rgba(139, 92, 246, 0.90)',
+    borderWidth: 2,
   },
   verifyButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
+    height: 54,
+    borderRadius: 30,
     alignItems: 'center',
-    shadowColor: '#378BBB',
+    justifyContent: 'center',
+    shadowColor: '#8B2BE2',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 5,
     marginBottom: 24,
   },
   verifyButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: 'Inter_24pt-Bold',
+    fontSize: 17,
+    fontFamily: 'Inter-SemiBold',
   },
   resendContainer: {
     flexDirection: 'row',
@@ -494,62 +496,18 @@ const styles = StyleSheet.create({
   },
   resendText: {
     fontSize: 15,
-    color: '#B8C7D9',
-    fontFamily: 'Inter_24pt-Regular',
+    color: 'rgba(255,255,255,0.55)',
+    fontFamily: 'Inter-Regular',
   },
   resendLink: {
     fontSize: 15,
-    color: '#378BBB',
-    fontWeight: '600',
-    fontFamily: 'Inter_24pt-Bold',
+    color: '#22D3EE',
+    fontFamily: 'Inter-SemiBold',
   },
   resendTimer: {
     fontSize: 15,
-    color: '#7F93AA',
-    fontWeight: '500',
-    fontFamily: 'Inter_24pt-Regular',
-  },
-  bubble: {
-    position: 'absolute',
-    backgroundColor: '#378BBB',
-    opacity: 0.08,
-    borderRadius: 100,
-  },
-  bubble1: {
-    width: 110,
-    height: 110,
-    top: '10%',
-    left: '8%',
-  },
-  bubble2: {
-    width: 75,
-    height: 75,
-    top: '22%',
-    right: '12%',
-  },
-  bubble3: {
-    width: 95,
-    height: 95,
-    top: '50%',
-    left: '7%',
-  },
-  bubble4: {
-    width: 65,
-    height: 65,
-    top: '65%',
-    right: '10%',
-  },
-  bubble5: {
-    width: 85,
-    height: 85,
-    top: '78%',
-    left: '15%',
-  },
-  bubble6: {
-    width: 70,
-    height: 70,
-    top: '85%',
-    right: '20%',
+    color: 'rgba(255,255,255,0.35)',
+    fontFamily: 'Inter-Regular',
   },
 });
 

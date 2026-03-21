@@ -7,8 +7,10 @@ import {
   StatusBar,
   Animated,
   Pressable,
+  ImageBackground,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 
 interface AccountTypeScreenProps {
   navigation: any;
@@ -22,14 +24,6 @@ const AccountTypeScreen = ({ navigation }: AccountTypeScreenProps) => {
   const explorerCircleScale = useRef(new Animated.Value(1)).current;
   const hostCircleScale = useRef(new Animated.Value(1)).current;
 
-  // Bubble animations
-  const bubble1Y = useRef(new Animated.Value(0)).current;
-  const bubble2Y = useRef(new Animated.Value(0)).current;
-  const bubble3Y = useRef(new Animated.Value(0)).current;
-  const bubble4Y = useRef(new Animated.Value(0)).current;
-  const bubble5Y = useRef(new Animated.Value(0)).current;
-  const bubble6Y = useRef(new Animated.Value(0)).current;
-
   const slideCard = (cardAnim: Animated.Value, open: boolean, direction: 'left' | 'right') => {
     Animated.spring(cardAnim, {
       toValue: open ? 0 : (direction === 'right' ? 400 : -400),
@@ -41,7 +35,7 @@ const AccountTypeScreen = ({ navigation }: AccountTypeScreenProps) => {
 
   const scaleCircle = (circleAnim: Animated.Value, shrink: boolean) => {
     Animated.spring(circleAnim, {
-      toValue: shrink ? 0.3 : 1,
+      toValue: shrink ? 0 : 1,
       useNativeDriver: true,
       friction: 8,
       tension: 40,
@@ -66,40 +60,6 @@ const AccountTypeScreen = ({ navigation }: AccountTypeScreenProps) => {
       scaleCircle(explorerCircleScale, false);
       scaleCircle(hostCircleScale, false);
     }
-
-    // Bubble animations
-    const createBubbleAnimation = (animatedValue: Animated.Value, duration: number, delay: number) => {
-      return Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(animatedValue, {
-            toValue: -30,
-            duration: duration,
-            useNativeDriver: true,
-          }),
-          Animated.timing(animatedValue, {
-            toValue: 30,
-            duration: duration,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-    };
-
-    const animations = [
-      createBubbleAnimation(bubble1Y, 4000, 0),
-      createBubbleAnimation(bubble2Y, 5000, 500),
-      createBubbleAnimation(bubble3Y, 3500, 1000),
-      createBubbleAnimation(bubble4Y, 4500, 300),
-      createBubbleAnimation(bubble5Y, 3800, 700),
-      createBubbleAnimation(bubble6Y, 4200, 200),
-    ];
-
-    animations.forEach(anim => anim.start());
-
-    return () => {
-      animations.forEach(anim => anim.stop());
-    };
   }, [openCard]);
 
   const handleCirclePress = (type: string) => {
@@ -114,16 +74,14 @@ const AccountTypeScreen = ({ navigation }: AccountTypeScreenProps) => {
   };
 
   return (
+    <ImageBackground
+      source={require('../../assets/images/bg_party.webp')}
+      style={styles.imageBackground}
+      blurRadius={6}
+    >
+      <View style={styles.bgDarkOverlay} />
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0E1621" translucent={true} />
-
-      {/* Floating Bubbles */}
-      <Animated.View style={[styles.bubble, styles.bubble1, { transform: [{ translateY: bubble1Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble2, { transform: [{ translateY: bubble2Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble3, { transform: [{ translateY: bubble3Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble4, { transform: [{ translateY: bubble4Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble5, { transform: [{ translateY: bubble5Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble6, { transform: [{ translateY: bubble6Y }] }]} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
       {/* Background overlay to close cards when clicked */}
       {openCard && (
@@ -237,20 +195,38 @@ const AccountTypeScreen = ({ navigation }: AccountTypeScreenProps) => {
 
       {/* Back Button */}
       <TouchableOpacity
-        style={[styles.backButton, { marginBottom: Math.max(24, insets.bottom) }]}
         onPress={() => navigation.goBack()}
         activeOpacity={0.8}
+        style={{ marginBottom: Math.max(24, insets.bottom) }}
       >
-        <Text style={styles.backButtonText}>Back to Login</Text>
+        <LinearGradient
+          colors={['#8B2BE2', '#06B6D4']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>Back to Login</Text>
+        </LinearGradient>
       </TouchableOpacity>
     </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  imageBackground: {
+    flex: 1,
+  },
+  bgDarkOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(13, 11, 30, 0.62)',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#0E1621',
     paddingHorizontal: 24,
   },
   overlay: {
@@ -260,48 +236,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 4,
-  },
-  bubble: {
-    position: 'absolute',
-    borderRadius: 999,
-    backgroundColor: '#378BBB',
-    opacity: 0.08,
-  },
-  bubble1: {
-    width: 100,
-    height: 100,
-    top: '8%',
-    left: '5%',
-  },
-  bubble2: {
-    width: 70,
-    height: 70,
-    top: '20%',
-    right: '8%',
-  },
-  bubble3: {
-    width: 130,
-    height: 130,
-    top: '60%',
-    left: '8%',
-  },
-  bubble4: {
-    width: 90,
-    height: 90,
-    top: '75%',
-    right: '6%',
-  },
-  bubble5: {
-    width: 50,
-    height: 50,
-    top: '12%',
-    right: '28%',
-  },
-  bubble6: {
-    width: 80,
-    height: 80,
-    top: '85%',
-    left: '25%',
   },
   headerSection: {
     marginTop: 60,
@@ -313,13 +247,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 8,
-    fontFamily: 'Inter_24pt-Bold',
+    fontFamily: 'Inter-Bold',
   },
   subtitle: {
     fontSize: 16,
-    color: '#B8C7D9',
+    color: 'rgba(255,255,255,0.55)',
     lineHeight: 24,
-    fontFamily: 'Inter_24pt-Regular',
+    fontFamily: 'Inter-Regular',
   },
   contentArea: {
     flex: 1,
@@ -342,37 +276,37 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     borderRadius: 125,
-    backgroundColor: '#16283D',
-    borderWidth: 3,
-    borderColor: '#233B57',
+    backgroundColor: 'rgba(30, 28, 45, 0.88)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
   },
   circleActive: {
-    borderColor: '#378BBB',
-    borderWidth: 4,
-    shadowColor: '#378BBB',
+    borderColor: 'rgba(139, 92, 246, 0.70)',
+    borderWidth: 2,
+    shadowColor: '#8B2BE2',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
+    shadowOpacity: 0.55,
     shadowRadius: 20,
     elevation: 10,
   },
   circleText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#398bbb',
-    fontFamily: 'Inter_24pt-Bold',
+    color: '#FFFFFF',
+    fontFamily: 'Inter-Bold',
     textAlign: 'center',
   },
   card: {
     position: 'absolute',
     width: 330,
     height: 210,
-    backgroundColor: '#16283D',
+    backgroundColor: 'rgba(30, 28, 45, 0.88)',
     borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#378BBB',
+    borderWidth: 1.5,
+    borderColor: 'rgba(139, 92, 246, 0.40)',
     zIndex: 20,
   },
   explorerCard: {
@@ -391,32 +325,29 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#378BBB',
+    color: '#FFFFFF',
     marginBottom: 12,
-    fontFamily: 'Inter_24pt-Bold',
+    fontFamily: 'Inter-Bold',
     textAlign: 'center',
   },
   cardDescription: {
     fontSize: 14,
-    color: '#B8C7D9',
+    color: 'rgba(255,255,255,0.65)',
     lineHeight: 20,
-    fontFamily: 'Inter_24pt-Regular',
+    fontFamily: 'Inter-Regular',
     textAlign: 'center',
   },
   backButton: {
-    backgroundColor: 'transparent',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    height: 54,
+    borderRadius: 30,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#233B57',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
   },
   backButtonText: {
-    fontSize: 15,
-    color: '#7F93AA',
-    fontWeight: '600',
-    fontFamily: 'Inter_24pt-Regular',
+    fontSize: 17,
+    color: '#FFFFFF',
+    fontFamily: 'Inter-SemiBold',
   },
   explorerCardTapZone: {
     position: 'absolute',

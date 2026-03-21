@@ -392,10 +392,17 @@ const EventHubScreen = () => {
     [events],
   );
 
-  // Keep slider ceiling updated when events load
+  // Seed price state once on first load; never silently reset user's committed filter
+  const priceInitialized = useRef(false);
   useEffect(() => {
-    setPriceMax(maxEventPrice);
-    setDraftPriceMax(maxEventPrice);
+    if (!priceInitialized.current && maxEventPrice > 0) {
+      setPriceMax(maxEventPrice);
+      setDraftPriceMax(maxEventPrice);
+      priceInitialized.current = true;
+    } else if (priceInitialized.current) {
+      // Only keep draft ceiling in sync; leave committed priceMax alone
+      setDraftPriceMax(prev => Math.max(prev, maxEventPrice));
+    }
   }, [maxEventPrice]);
 
   // ── Active filter count (for badge) ──
@@ -493,7 +500,7 @@ const EventHubScreen = () => {
 
   // ── Client-side filter + search ───────────────────────────────────────────
 
-  const filtered = events.filter(ev => {
+  const filtered = useMemo(() => events.filter(ev => {
     if (search.trim()) {
       if (!ev.title.toLowerCase().includes(search.trim().toLowerCase())) return false;
     }
@@ -507,7 +514,7 @@ const EventHubScreen = () => {
     }
     if (!passesDateFilter(ev.startTime, dateF)) return false;
     return true;
-  });
+  }), [events, search, category, price, priceMax, dateF]);
 
   // ── Render ─────────────────────────────────────────────────────────────────
 

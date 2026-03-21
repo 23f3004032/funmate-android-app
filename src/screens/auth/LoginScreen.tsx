@@ -1,11 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   StatusBar,
-  Animated,
+  ImageBackground,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -16,52 +17,6 @@ interface LoginScreenProps {
 
 const LoginScreen = ({ navigation }: LoginScreenProps) => {
   const insets = useSafeAreaInsets();
-  // Bubble animations
-  const bubble1Y = useRef(new Animated.Value(0)).current;
-  const bubble2Y = useRef(new Animated.Value(0)).current;
-  const bubble3Y = useRef(new Animated.Value(0)).current;
-  const bubble4Y = useRef(new Animated.Value(0)).current;
-  const bubble5Y = useRef(new Animated.Value(0)).current;
-  const bubble6Y = useRef(new Animated.Value(0)).current;
-  const bubble7Y = useRef(new Animated.Value(0)).current;
-  const bubble8Y = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const createBubbleAnimation = (animatedValue: Animated.Value, duration: number, delay: number) => {
-      return Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(animatedValue, {
-            toValue: -30,
-            duration: duration,
-            useNativeDriver: true,
-          }),
-          Animated.timing(animatedValue, {
-            toValue: 30,
-            duration: duration,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-    };
-
-    const animations = [
-      createBubbleAnimation(bubble1Y, 4000, 0),
-      createBubbleAnimation(bubble2Y, 5000, 500),
-      createBubbleAnimation(bubble3Y, 3500, 1000),
-      createBubbleAnimation(bubble4Y, 4500, 300),
-      createBubbleAnimation(bubble5Y, 3800, 700),
-      createBubbleAnimation(bubble6Y, 4200, 200),
-      createBubbleAnimation(bubble7Y, 3900, 400),
-      createBubbleAnimation(bubble8Y, 4300, 600),
-    ];
-
-    animations.forEach(anim => anim.start());
-
-    return () => {
-      animations.forEach(anim => anim.stop());
-    };
-  }, []);
 
   const handlePhoneLogin = () => {
     console.log('Phone login pressed');
@@ -79,23 +34,26 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0E1621" translucent={true} />
+    <ImageBackground
+      source={require('../../assets/images/bg_splash.webp')}
+      style={styles.container}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
       
-      {/* Floating Bubbles */}
-      <Animated.View style={[styles.bubble, styles.bubble1, { transform: [{ translateY: bubble1Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble2, { transform: [{ translateY: bubble2Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble3, { transform: [{ translateY: bubble3Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble4, { transform: [{ translateY: bubble4Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble5, { transform: [{ translateY: bubble5Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble6, { transform: [{ translateY: bubble6Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble7, { transform: [{ translateY: bubble7Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble8, { transform: [{ translateY: bubble8Y }] }]} />
-      
-      {/* Logo Section */}
-      <View style={styles.logoSection}>
-        <Text style={styles.appName}>Funmate</Text>
-        <Text style={styles.tagline}>Find Fun. Find Friends. Find Love.</Text>
+      {/* Logo — top centre */}
+      <View style={[styles.logoSection, { paddingTop: insets.top + 16 }]}>
+        <View style={styles.logoRow}>
+          <Image source={require('../../assets/logo.png')} style={styles.logoImage as any} />
+          <Text style={styles.appName}>Funmate</Text>
+        </View>
+      </View>
+
+      {/* Hero Text */}
+      <View style={styles.heroSection}>
+        <Text style={styles.heroTitle}>Don't Just{'\n'}Match. Meet.</Text>
+        <Text style={styles.heroSubtitle}>Discover events near you.{'\n'}Join. Vibe. Connect in real life.</Text>
       </View>
 
       {/* Login Options */}
@@ -105,7 +63,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={['#378BBB', '#4FC3F7']}
+            colors={['#8B2BE2', '#06B6D4']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.primaryButton}
@@ -139,119 +97,94 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
           <Text style={styles.footerLink}>Privacy Policy</Text>
         </Text>
       </View>
-    </View>
+      </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0E1621',
   },
-  bubble: {
-    position: 'absolute',
-    borderRadius: 999,
-    backgroundColor: '#378BBB',
-    opacity: 0.08,
-  },
-  bubble1: {
-    width: 120,
-    height: 120,
-    top: '10%',
-    left: '5%',
-  },
-  bubble2: {
-    width: 80,
-    height: 80,
-    top: '25%',
-    right: '10%',
-  },
-  bubble3: {
-    width: 150,
-    height: 150,
-    top: '50%',
-    left: '10%',
-  },
-  bubble4: {
-    width: 100,
-    height: 100,
-    top: '70%',
-    right: '5%',
-  },
-  bubble5: {
-    width: 60,
-    height: 60,
-    top: '15%',
-    right: '25%',
-  },
-  bubble6: {
-    width: 90,
-    height: 90,
-    top: '80%',
-    left: '20%',
-  },
-  bubble7: {
-    width: 70,
-    height: 70,
-    top: '32%',
-    left: '15%',
-  },
-  bubble8: {
-    width: 110,
-    height: 110,
-    top: '37%',
-    left: '38%',
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(13, 11, 30, 0.60)',
   },
   logoSection: {
-    flex: 2,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 80,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 13,
+  },
+  logoImage: {
+    width: 44,
+    height: 44,
+    resizeMode: 'contain',
+    position: 'absolute',
+    left: -52,
   },
   appName: {
-    fontSize: 48,
-    fontWeight: 'bold',
+    fontSize: 38,
+    fontFamily: 'Inter-Bold',
     color: '#FFFFFF',
-    letterSpacing: 1,
-    fontFamily: 'Inter_24pt-Bold',
+    letterSpacing: 0.5,
   },
-  tagline: {
-    fontSize: 16,
-    color: '#7F93AA',
-    marginTop: 12,
-    fontWeight: '400',
-    fontFamily: 'Inter_24pt-Regular',
+  heroSection: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingHorizontal: 32,
+    paddingBottom: 40,
+    alignItems: 'center',
+  },
+  heroTitle: {
+    fontSize: 44,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+    lineHeight: 52,
+    marginBottom: 14,
+    textAlign: 'center',
+  },
+  heroSubtitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Regular',
+    color: 'rgba(255,255,255,0.99)',
+    lineHeight: 24,
+    textAlign: 'center',
   },
   loginSection: {
-    flex: 2,
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     paddingHorizontal: 32,
+    paddingBottom: 32,
   },
   primaryButton: {
-    paddingVertical: 16,
-    borderRadius: 16,
+    height: 54,
+    borderRadius: 30,
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 16,
   },
   primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: 'Inter_24pt-Bold',
+    fontSize: 17,
+    fontFamily: 'Inter-SemiBold',
   },
   secondaryButton: {
     backgroundColor: 'transparent',
-    paddingVertical: 16,
-    borderRadius: 16,
+    height: 54,
+    borderRadius: 30,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#378BBB',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(139, 92, 246, 0.60)',
   },
   secondaryButtonText: {
-    color: '#378BBB',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: 'Inter_24pt-Bold',
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontFamily: 'Inter-SemiBold',
   },
   signupSection: {
     flexDirection: 'row',
@@ -261,14 +194,13 @@ const styles = StyleSheet.create({
   },
   signupText: {
     fontSize: 15,
-    color: '#7F93AA',
-    fontFamily: 'Inter_24pt-Regular',
+    color: 'rgba(255,255,255,0.55)',
+    fontFamily: 'Inter-Regular',
   },
   signupLink: {
     fontSize: 15,
-    color: '#378BBB',
-    fontWeight: '600',
-    fontFamily: 'Inter_24pt-Bold',
+    color: '#22D3EE',
+    fontFamily: 'Inter-SemiBold',
   },
   footer: {
     flex: 0.5,
@@ -277,15 +209,14 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: '#7F93AA',
+    color: 'rgba(255,255,255,0.55)',
     textAlign: 'center',
     lineHeight: 18,
-    fontFamily: 'Inter_24pt-Regular',
+    fontFamily: 'Inter-Regular',
   },
   footerLink: {
-    color: '#378BBB',
-    fontWeight: '500',
-    fontFamily: 'Inter_24pt-Bold',
+    color: '#22D3EE',
+    fontFamily: 'Inter-Medium',
   },
 });
 

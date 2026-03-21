@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   StatusBar,
   ActivityIndicator,
-  Alert,
-  Animated,
+  ImageBackground,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -31,44 +31,6 @@ const PhoneNumberScreen = ({ navigation, route }: PhoneNumberScreenProps) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
-
-  // Bubble animations
-  const bubble1Y = useRef(new Animated.Value(0)).current;
-  const bubble2Y = useRef(new Animated.Value(0)).current;
-  const bubble3Y = useRef(new Animated.Value(0)).current;
-  const bubble4Y = useRef(new Animated.Value(0)).current;
-  const bubble5Y = useRef(new Animated.Value(0)).current;
-  const bubble6Y = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const createBubbleAnimation = (animatedValue: Animated.Value, duration: number) => {
-      return Animated.loop(
-        Animated.sequence([
-          Animated.timing(animatedValue, {
-            toValue: -30,
-            duration: duration,
-            useNativeDriver: true,
-          }),
-          Animated.timing(animatedValue, {
-            toValue: 0,
-            duration: duration,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-    };
-
-    const animations = [
-      createBubbleAnimation(bubble1Y, 4000),
-      createBubbleAnimation(bubble2Y, 3500),
-      createBubbleAnimation(bubble3Y, 4500),
-      createBubbleAnimation(bubble4Y, 3800),
-      createBubbleAnimation(bubble5Y, 4200),
-      createBubbleAnimation(bubble6Y, 4600),
-    ];
-
-    animations.forEach(anim => anim.start());
-  }, []);
 
   const onSelectCountry = (country: Country) => {
     setCountryCode(country.cca2);
@@ -122,36 +84,43 @@ const PhoneNumberScreen = ({ navigation, route }: PhoneNumberScreenProps) => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0E1621" translucent={true} />
-
-      {/* Floating Bubbles */}
-      <Animated.View style={[styles.bubble, styles.bubble1, { transform: [{ translateY: bubble1Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble2, { transform: [{ translateY: bubble2Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble3, { transform: [{ translateY: bubble3Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble4, { transform: [{ translateY: bubble4Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble5, { transform: [{ translateY: bubble5Y }] }]} />
-      <Animated.View style={[styles.bubble, styles.bubble6, { transform: [{ translateY: bubble6Y }] }]} />
+    <ImageBackground
+      source={require('../../assets/images/bg_splash.webp')}
+      style={styles.container}
+      resizeMode="cover"
+      blurRadius={6}
+    >
+      <View style={styles.overlay} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
           <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
         </TouchableOpacity>
+
+        {/* Funmate Logo — centred in header */}
+        <View style={styles.logoRow}>
+          <Image source={require('../../assets/logo.png')} style={styles.logoImage as any} />
+          <Text style={styles.appName}>Funmate</Text>
+        </View>
+
+        {/* Spacer to balance back button */}
+        <View style={styles.backButton} />
       </View>
 
       {/* Content */}
       <View style={styles.content}>
         <Text style={styles.title}>Enter Your Phone Number</Text>
         <Text style={styles.subtitle}>
-          We'll send you a verification code
+          We'll send you OTP for verification
         </Text>
 
-        {/* Phone Input */}
+        {/* Phone Input — single unified box */}
         <View style={styles.phoneInputContainer}>
           <TouchableOpacity
             style={styles.countryCodeContainer}
@@ -168,15 +137,21 @@ const PhoneNumberScreen = ({ navigation, route }: PhoneNumberScreenProps) => {
               visible={showCountryPicker}
               onClose={() => setShowCountryPicker(false)}
               theme={{
-                backgroundColor: '#16283D',
+                backgroundColor: 'rgba(40, 38, 50, 1.00)',
+                primaryColor: 'rgba(180, 180, 195, 0.18)',
+                primaryColorVariant: 'rgba(180, 180, 195, 0.08)',
                 onBackgroundTextColor: '#FFFFFF',
-                fontSize: 16,
-                filterPlaceholderTextColor: '#7F93AA',
-                activeOpacity: 0.7,
-                itemHeight: 50,
+                fontSize: 15,
+                fontFamily: 'Inter-Regular',
+                filterPlaceholderTextColor: 'rgba(255, 255, 255, 0.40)',
+                activeOpacity: 0.55,
+                itemHeight: 52,
+                flagSize: 24,
               }}
               modalProps={{
                 animationType: 'slide',
+                transparent: true,
+                statusBarTranslucent: false,
               }}
               containerButtonStyle={{
                 alignItems: 'center',
@@ -185,19 +160,20 @@ const PhoneNumberScreen = ({ navigation, route }: PhoneNumberScreenProps) => {
             />
             <Text style={styles.countryCodeText}>{callingCode}</Text>
           </TouchableOpacity>
-          
-          <View style={styles.phoneNumberContainer}>
-            <TextInput
-              style={styles.phoneNumberInput}
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              placeholder="Phone Number"
-              placeholderTextColor="#999999"
-              keyboardType="phone-pad"
-              maxLength={10}
-              autoFocus
-            />
-          </View>
+
+          {/* Vertical divider */}
+          <View style={styles.divider} />
+
+          <TextInput
+            style={styles.phoneNumberInput}
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            placeholder="Phone Number"
+            placeholderTextColor="rgba(255,255,255,0.35)"
+            keyboardType="phone-pad"
+            maxLength={10}
+            autoFocus
+          />
         </View>
 
         {/* Continue Button */}
@@ -207,31 +183,36 @@ const PhoneNumberScreen = ({ navigation, route }: PhoneNumberScreenProps) => {
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={phoneNumber.length < 10 ? ['#1B2F48', '#1B2F48'] : ['#378BBB', '#4FC3F7']}
+            colors={phoneNumber.length < 10 || loading ? ['rgba(139,43,226,0.25)', 'rgba(6,182,212,0.25)'] : ['#8B2BE2', '#06B6D4']}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 0}}
             style={[styles.continueButton, { marginBottom: Math.max(32, insets.bottom + 16) }]}
           >
             {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color="rgba(255,255,255,0.60)" />
             ) : (
-              <Text style={styles.continueButtonText}>Get Code</Text>
+              <Text style={styles.continueButtonText}>Get OTP</Text>
             )}
           </LinearGradient>
         </TouchableOpacity>
       </View>
-    </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0E1621',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(13, 11, 30, 0.62)',
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 40,
     paddingBottom: 10,
   },
   backButton: {
@@ -240,10 +221,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 18,
+  },
+  logoImage: {
+    width: 30,
+    height: 30,
+    resizeMode: 'contain',
+    position: 'absolute',
+    left: -36,
+  },
+  appName: {
+    fontSize: 30,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
   content: {
     flex: 1,
     paddingHorizontal: 32,
-    paddingTop: 40,
+    paddingTop: 100,
   },
   title: {
     fontSize: 28,
@@ -260,97 +259,57 @@ const styles = StyleSheet.create({
   },
   phoneInputContainer: {
     flexDirection: 'row',
-    gap: 12,
+    alignItems: 'center',
+    backgroundColor: 'rgba(60, 58, 75, 0.72)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     marginBottom: 32,
-    alignItems: 'stretch',
+    height: 56,
+    overflow: 'hidden',
   },
   countryCodeContainer: {
-    width: 100,
-    backgroundColor: '#1B2F48',
-    borderRadius: 12,
-    paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 12,
     gap: 4,
+    height: '100%',
   },
   countryCodeText: {
     fontSize: 16,
     color: '#FFFFFF',
-    fontWeight: '600',
-    fontFamily: 'Inter_24pt-Bold',
+    fontFamily: 'Inter-SemiBold',
   },
-  phoneNumberContainer: {
-    flex: 1,
+  divider: {
+    width: 1,
+    height: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   phoneNumberInput: {
-    backgroundColor: '#1B2F48',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    flex: 1,
+    paddingHorizontal: 14,
     fontSize: 16,
     color: '#FFFFFF',
-    height: 56,
-    fontFamily: 'Inter_24pt-Regular',
+    fontFamily: 'Inter-Regular',
+    height: '100%',
   },
   continueButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
+    height: 54,
+    borderRadius: 30,
     alignItems: 'center',
-    shadowColor: '#378BBB',
+    justifyContent: 'center',
+    shadowColor: '#8B2BE2',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 5,
   },
   continueButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: 'Inter_24pt-Bold',
+    fontSize: 17,
+    fontFamily: 'Inter-SemiBold',
   },
-  bubble: {
-    position: 'absolute',
-    backgroundColor: '#378BBB',
-    opacity: 0.08,
-    borderRadius: 100,
-  },
-  bubble1: {
-    width: 120,
-    height: 120,
-    top: '8%',
-    left: '10%',
-  },
-  bubble2: {
-    width: 80,
-    height: 80,
-    top: '25%',
-    right: '15%',
-  },
-  bubble3: {
-    width: 100,
-    height: 100,
-    top: '45%',
-    left: '5%',
-  },
-  bubble4: {
-    width: 60,
-    height: 60,
-    top: '60%',
-    right: '8%',
-  },
-  bubble5: {
-    width: 90,
-    height: 90,
-    top: '75%',
-    left: '20%',
-  },
-  bubble6: {
-    width: 70,
-    height: 70,
-    top: '88%',
-    right: '25%',
-  },
+
 });
 
 export default PhoneNumberScreen;
