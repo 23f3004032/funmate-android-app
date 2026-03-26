@@ -98,6 +98,10 @@ INTEGRATION_COMPLETE.md
 DELETE_CHAT_FEATURE.md
 CHAT_CLEANUP_CLOUD_FUNCTION.md
 BLOCKING_UX_FINAL.md
+
+# Firebase config (should never be committed)
+**/GoogleService-Info.plist
+android/app/google-services.json
 PERFORMANCE_OPTIMIZATIONS.md
 MERCHANT_DOCUMENT_SECURITY.md
 DEPLOY_SECURITY_RULES.md

@@ -1,0 +1,43 @@
+workflows:
+  ios-testflight:
+    name: iOS TestFlight Build
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    environment:
+      node: 18
+      xcode: 16
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.funmate.app
+      groups:
+        - firebase_ios_secrets
+
+    scripts:
+      - name: Install JS dependencies
+        script: npm install
+
+      - name: Write GoogleService-Info.plist
+        script: |
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > ios/FunmateApp/GoogleService-Info.plist
+
+      - name: Install CocoaPods
+        script: |
+          cd ios && pod install --repo-update
+
+      - name: Build iOS
+        script: |
+          xcode-project build-ipa \
+            --workspace ios/FunmateApp.xcworkspace \
+            --scheme FunmateApp \
+            --config Release
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
