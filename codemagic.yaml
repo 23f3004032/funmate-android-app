@@ -14,6 +14,9 @@ workflows:
       groups:
         - firebase_ios_secrets
 
+    integrations:
+      app_store_connect: codemagic
+
     scripts:
       - name: Install JS dependencies
         script: npm install
