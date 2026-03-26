@@ -11,6 +11,7 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.funmate.app
+        use_profiles: false
       groups:
         - firebase_ios_secrets
 
