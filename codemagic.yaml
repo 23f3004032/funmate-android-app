@@ -11,7 +11,6 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.funmate.app
-        use_xcode_managed_signing: true
       groups:
         - firebase_ios_secrets
 
@@ -35,7 +34,8 @@ workflows:
           xcode-project build-ipa \
             --workspace ios/FunmateApp.xcworkspace \
             --scheme FunmateApp \
-            --config Release
+            --config Release \
+            --code-sign-identity "iPhone Distribution"
 
     artifacts:
       - build/ios/ipa/*.ipa
